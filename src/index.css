@@ -1,0 +1,186 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Kiwi Consulting palette. Light values come from the brand guide;
+   dark values are stepped from the same greens for a dark surface. */
+:root {
+  color-scheme: light;
+  --bg: #f6f8f2;
+  --surface: #ffffff;
+  --surface-2: #f3f8ec;
+  --surface-3: #e9f1dd;
+  --border: #e2e7da;
+  --border-strong: #cfd8c2;
+  --ink: #262626;
+  --ink-2: #404040;
+  --muted: #595959;
+  --subtle: #7f7f7f;
+  --brand: #729928;
+  --brand-strong: #4a7c29;
+  --brand-strong-hover: #3e6a22;
+  --on-brand: #ffffff;
+  --accent: #99cb38;
+  --accent-2: #63a537;
+  --brand-soft: #f3f8ec;
+  --brand-line: #dce9cb;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --warning: #9a6700;
+  --warning-soft: #fff4d6;
+  --focus: #63a537;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #111410;
+  --surface: #191d16;
+  --surface-2: #1f261b;
+  --surface-3: #283122;
+  --border: #2b3326;
+  --border-strong: #3a4533;
+  --ink: #edf0e9;
+  --ink-2: #d7dcd1;
+  --muted: #aab2a2;
+  --subtle: #868e7f;
+  --brand: #a9d453;
+  --brand-strong: #99cb38;
+  --brand-strong-hover: #aad64f;
+  --on-brand: #142006;
+  --accent: #99cb38;
+  --accent-2: #7db544;
+  --brand-soft: #1f281a;
+  --brand-line: #34442a;
+  --danger: #f28b82;
+  --danger-soft: #3a1d1a;
+  --warning: #e6b450;
+  --warning-soft: #33290f;
+  --focus: #99cb38;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-strong-hover: var(--brand-strong-hover);
+  --color-on-brand: var(--on-brand);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-line: var(--brand-line);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --font-sans: 'Aptos', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Aptos Display', 'Aptos', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------- */
+/* FullCalendar, themed with the same tokens                               */
+/* ---------------------------------------------------------------------- */
+.kiwi-calendar {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--surface);
+  --fc-neutral-bg-color: var(--surface-2);
+  --fc-today-bg-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  --fc-now-indicator-color: var(--danger);
+  --fc-highlight-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  --fc-event-border-color: transparent;
+  font-size: 0.8125rem;
+}
+
+.kiwi-calendar .fc-col-header-cell-cushion,
+.kiwi-calendar .fc-timegrid-slot-label-cushion {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.kiwi-calendar .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.kiwi-calendar .fc-timegrid-slot {
+  height: 2.25rem;
+}
+
+.kiwi-calendar .fc-timegrid-slot-minor {
+  border-top-style: dotted;
+}
+
+.kiwi-calendar .fc-event {
+  border-radius: 6px;
+  padding: 1px 2px;
+  box-shadow: 0 0 0 1px var(--surface);
+}
+
+.kiwi-calendar .fc-scrollgrid {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kiwi-calendar .fc {
+  --fc-button-bg-color: var(--surface);
+  --fc-button-border-color: var(--border-strong);
+  --fc-button-text-color: var(--ink);
+  --fc-button-hover-bg-color: var(--surface-3);
+  --fc-button-hover-border-color: var(--border-strong);
+  --fc-button-active-bg-color: var(--brand-soft);
+  --fc-button-active-border-color: var(--accent-2);
+}
+
+.kiwi-calendar .fc .fc-button {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+.kiwi-calendar .fc .fc-button-active {
+  color: var(--brand-strong) !important;
+}
+
+.kiwi-calendar .fc .fc-toolbar-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+
+.kiwi-calendar .fc .fc-toolbar {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

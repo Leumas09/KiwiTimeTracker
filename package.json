@@ -1,0 +1,66 @@
+{
+  "name": "kiwi-time-tracker",
+  "version": "1.0.0",
+  "description": "Suivi de temps simple et personnel, inspiré de Toggl Track",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:sql": "node scripts/check-sql.mjs",
+    "icons": "node scripts/build-icons.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Leumas09/KiwiTimeTracker.git"
+  },
+  "author": "Samuel Fondrillon",
+  "bugs": {
+    "url": "https://github.com/Leumas09/KiwiTimeTracker/issues"
+  },
+  "homepage": "https://github.com/Leumas09/KiwiTimeTracker#readme",
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/react": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
+    "@radix-ui/react-dialog": "^1.1.23",
+    "@radix-ui/react-popover": "^1.1.23",
+    "@supabase/supabase-js": "^2.117.2",
+    "@tanstack/react-query": "^5.104.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "i18next": "^26.4.2",
+    "lucide-react": "^1.50.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-i18next": "^17.0.15",
+    "react-router": "^8.4.0",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "playwright-core": "^1.63.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^8.3.2",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^5.0.3"
+  },
+  "private": true,
+  "type": "module"
+}
