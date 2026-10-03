@@ -85,7 +85,7 @@ export function StackedBars({
           <BarChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: -8 }} barCategoryGap="22%">
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis dataKey="label" tickLine={false} axisLine={{ stroke: 'var(--border-strong)' }} tick={{ fill: 'var(--muted)', fontSize: 12 }} interval="preserveStartEnd" minTickGap={8} />
-            <YAxis tickLine={false} axisLine={false} tick={{ fill: 'var(--subtle)', fontSize: 11 }} tickFormatter={formatAxis} width={48} allowDecimals={false} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fill: 'var(--subtle)', fontSize: 11 }} tickFormatter={formatAxis} width={48} allowDecimals />
             <Tooltip
               cursor={{ fill: 'var(--surface-3)', opacity: 0.6 }}
               content={(props) => <ChartTooltip {...props} label={props.payload?.[0]?.payload?.tooltipLabel ?? props.label} series={series} formatValue={formatValue} />}

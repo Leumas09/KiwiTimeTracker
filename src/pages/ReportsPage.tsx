@@ -341,7 +341,7 @@ function Summary({ entries, range, unit, now }: { entries: TimeEntry[]; range: D
     value: s.key === OTHER ? totals.filter((g) => !keep.has(g.key)).reduce((a, g) => a + g.seconds, 0) : (totals.find((g) => g.key === s.key)?.seconds ?? 0),
   }))
 
-  const unitAxis = (v: number) => `${fmt.number(v, 1)} ${unit === 'days' ? (settings.locale === 'fr' ? 'j' : 'd') : 'h'}`
+  const unitAxis = (v: number) => `${fmt.number(v, 2)} ${unit === 'days' ? (settings.locale === 'fr' ? 'j' : 'd') : 'h'}`
 
   if (!entries.length) return <EmptyState title={t('reports.empty')} />
 
