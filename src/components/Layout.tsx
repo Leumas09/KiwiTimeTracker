@@ -7,6 +7,7 @@ import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { resetDemo } from '../data/demoApi'
 import { useLabels, useSettings } from '../data/hooks'
+import { APP_VERSION_LABEL } from '../version'
 import { TimerBar } from './TimerBar'
 import { Popover, Spinner } from './ui'
 
@@ -85,6 +86,9 @@ export function Layout() {
             <LogOut size={18} />
             {isDemo ? t('demo.reset') : t('nav.signOut')}
           </button>
+          <NavLink to="/settings#about" className="tabular block px-3 pt-2 text-[11px] text-subtle hover:text-ink" title={t('settings.about')}>
+            {APP_VERSION_LABEL}
+          </NavLink>
         </div>
       </aside>
 
@@ -150,6 +154,7 @@ export function Layout() {
             <LogOut size={18} />
             {isDemo ? t('demo.reset') : t('nav.signOut')}
           </button>
+          <div className="tabular border-t border-border px-3 pt-2 mt-1 text-[11px] text-subtle">{APP_VERSION_LABEL}</div>
         </Popover>
       </nav>
     </div>
