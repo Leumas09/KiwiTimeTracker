@@ -9,10 +9,10 @@ import { useTranslation } from 'react-i18next'
 import { EntryEditor, type EntryDraft } from '../components/EntryEditor'
 import { PageHeader } from '../components/ui'
 import { useEntries, useEntryMutations, useLookup, useNow, useRunningEntry, useSettings } from '../data/hooks'
-import { readableText } from '../lib/colors'
+import { tint } from '../lib/colors'
 import { useFormat } from '../lib/format'
 import { entrySeconds } from '../lib/stats'
-import { useColor } from '../lib/theme'
+import { useColor, useIsDark } from '../lib/theme'
 import type { DateRange, TimeEntry } from '../lib/types'
 
 export function CalendarPage() {
@@ -20,11 +20,12 @@ export function CalendarPage() {
   const settings = useSettings()
   const fmt = useFormat()
   const color = useColor()
+  const dark = useIsDark()
   const { projects } = useLookup()
   const { update } = useEntryMutations()
   const [range, setRange] = useState<DateRange | null>(null)
   const [editing, setEditing] = useState<EntryDraft | null>(null)
-  const { data: entries = [] } = useEntries(range)
+  const { data: entries = [] } = useEntries(range, range !== null)
   const { data: running } = useRunningEntry()
   const now = useNow(60_000, !!running)
 
@@ -38,20 +39,20 @@ export function CalendarPage() {
     () =>
       all.map((e) => {
         const project = e.projectId ? projects.get(e.projectId) : undefined
-        const bg = color(project?.color)
+        const edge = color(project?.color)
         return {
           id: e.id,
           title: e.description || project?.name || t('timer.noDescription'),
           start: e.start,
           end: e.end ?? new Date(now).toISOString(),
-          backgroundColor: bg,
-          borderColor: bg,
-          textColor: readableText(bg),
+          backgroundColor: tint(edge, dark ? '#191d16' : '#ffffff', dark ? 0.32 : 0.2),
+          borderColor: edge,
+          textColor: dark ? '#edf0e9' : '#262626',
           editable: e.end !== null,
           extendedProps: { entry: e, projectName: project?.name },
         }
       }),
-    [all, projects, color, t, now],
+    [all, projects, color, t, now, dark],
   )
 
   const total = all.reduce((s, e) => s + entrySeconds(e, now), 0)
@@ -74,15 +75,27 @@ export function CalendarPage() {
 
   const onClick = (arg: EventClickArg) => setEditing(arg.event.extendedProps.entry as TimeEntry)
 
-  const renderEvent = (arg: EventContentArg) => (
-    <div className="flex h-full flex-col overflow-hidden px-1 leading-tight">
-      <span className="truncate font-semibold">{arg.event.title}</span>
-      {arg.event.extendedProps.projectName && arg.event.title !== arg.event.extendedProps.projectName && (
-        <span className="truncate opacity-90">{arg.event.extendedProps.projectName as string}</span>
-      )}
-      <span className="truncate opacity-80">{arg.timeText}</span>
-    </div>
-  )
+  const renderEvent = (arg: EventContentArg) => {
+    const minutes = arg.event.start && arg.event.end ? (arg.event.end.getTime() - arg.event.start.getTime()) / 60_000 : 60
+    // Short blocks: one line, so nothing gets cut in half.
+    if (minutes < 50) {
+      return (
+        <div className="flex h-full items-start gap-1 overflow-hidden px-1 leading-tight">
+          <span className="truncate font-semibold">{arg.event.title}</span>
+          <span className="shrink-0">{arg.timeText.split(' - ')[0]}</span>
+        </div>
+      )
+    }
+    return (
+      <div className="flex h-full flex-col overflow-hidden px-1 leading-tight">
+        <span className="truncate font-semibold">{arg.event.title}</span>
+        {arg.event.extendedProps.projectName && arg.event.title !== arg.event.extendedProps.projectName && (
+          <span className="truncate">{arg.event.extendedProps.projectName as string}</span>
+        )}
+        <span className="truncate">{arg.timeText}</span>
+      </div>
+    )
+  }
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
@@ -98,6 +111,9 @@ export function CalendarPage() {
           plugins={[timeGridPlugin, interactionPlugin]}
           initialView={isMobile ? 'timeGridDay' : 'timeGridWeek'}
           headerToolbar={{ left: 'prev,next today', center: 'title', right: 'timeGridDay,timeGridWeek' }}
+          buttonIcons={false}
+          buttonText={{ today: t('time.today'), day: t('calendar.day'), week: t('calendar.week'), prev: '‹', next: '›' }}
+          buttonHints={{ prev: t('common.previous'), next: t('common.next') }}
           locale={settings.locale === 'fr' ? frLocale : enLocale}
           firstDay={settings.weekStart}
           height="max(560px, calc(100dvh - 230px))"

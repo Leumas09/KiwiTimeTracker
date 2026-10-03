@@ -25,9 +25,10 @@ export function Onboarding() {
   const { t, i18n } = useTranslation()
   const settings = useSettings()
   const updateProfile = useUpdateProfile()
-  const [locale, setLocale] = useState<Locale>(settings.locale)
+  // Starts from the browser language (the profile only has a default).
+  const [locale, setLocale] = useState<Locale>(i18n.language === 'en' ? 'en' : 'fr')
   const [choice, setChoice] = useState<'pro' | 'student' | 'custom'>('pro')
-  const [custom, setCustom] = useState<Labels>(PRESETS.pro[settings.locale])
+  const [custom, setCustom] = useState<Labels>(PRESETS.pro[i18n.language === 'en' ? 'en' : 'fr'])
 
   if (settings.onboarded) return null
 
@@ -57,7 +58,7 @@ export function Onboarding() {
     <Modal open dismissible={false} onOpenChange={() => undefined} title={t('onboarding.title')} footer={<Button variant="primary" onClick={finish}>{t('onboarding.start')}</Button>}>
       <div className="grid gap-5">
         <p className="text-sm text-muted">{t('onboarding.intro')}</p>
-        <Field label={t('settings.language')}>
+        <Field label={t('settings.language')} group>
           <Segmented
             value={locale}
             onChange={(l) => {

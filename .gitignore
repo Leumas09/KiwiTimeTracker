@@ -6,3 +6,7 @@ dev-dist
 *.local
 *.tsbuildinfo
 .DS_Store
+dist-supabase
+test-results
+playwright-report
+.integration

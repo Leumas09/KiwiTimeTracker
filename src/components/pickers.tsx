@@ -107,13 +107,12 @@ export function ProjectPicker({
         title={selected ? undefined : t('picker.chooseProject', { level: labels.level2 })}
         className={clsx(
           'inline-flex h-9 min-w-0 max-w-[16rem] items-center gap-1.5 rounded-lg px-2 text-sm transition-colors hover:bg-surface-3',
-          selected ? 'font-medium' : 'text-muted',
+          selected ? 'font-medium text-ink-2' : 'text-muted',
         )}
-        style={selected ? { color: color(selected.color) } : undefined}
       >
         {selected ? <ColorDot color={color(selected.color)} /> : <FolderOpen size={18} className="shrink-0" />}
         {selected && <span className="truncate">{selected.name}</span>}
-        {selectedCategory && <span className="hidden truncate text-xs text-subtle sm:inline">· {selectedCategory.name}</span>}
+        {selectedCategory && <span className="hidden truncate text-xs text-muted sm:inline">· {selectedCategory.name}</span>}
       </button>
     )
 

@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Archive, ArchiveRestore, Check, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useConfirm } from '../components/feedback'
+import { toast, useConfirm } from '../components/feedback'
 import { Button, ColorDot, EmptyState, Field, IconButton, Input, Modal, PageHeader, Segmented, Select } from '../components/ui'
 import { useCategoryMutations, useLabels, useLookup, useProjectMutations, useTagMutations } from '../data/hooks'
 import { nextColor, PALETTE, readableText } from '../lib/colors'
@@ -300,7 +300,7 @@ function TargetEditor({ kind, item, onClose }: { kind: 'category' | 'project'; i
             </Select>
           </Field>
         )}
-        <Field label={t('projects.color')}>
+        <Field label={t('projects.color')} group>
           <div className="flex flex-wrap items-center gap-2">
             {PALETTE.map((c) => (
               <button
@@ -328,14 +328,14 @@ function TargetEditor({ kind, item, onClose }: { kind: 'category' | 'project'; i
           <Field label={t('projects.budget')} hint={t('projects.budgetHint')}>
             <Input value={budget} onChange={(e) => setBudget(e.target.value)} inputMode="decimal" placeholder="10" className="max-w-[10rem]" />
           </Field>
-          <Field label={t('projects.goal')} hint={t('projects.goalHint')}>
+          <Field label={t('projects.goal')} hint={t('projects.goalHint')} group>
             <div className="flex flex-wrap items-center gap-2">
-              <Input value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} inputMode="decimal" placeholder="5" className="w-24" />
-              <Select value={goalUnit} onChange={(e) => setGoalUnit(e.target.value as GoalUnit)} className="w-auto">
+              <Input value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} inputMode="decimal" placeholder="5" className="w-24" aria-label={t('projects.goalAmount')} />
+              <Select value={goalUnit} onChange={(e) => setGoalUnit(e.target.value as GoalUnit)} className="w-auto" aria-label={t('projects.goalUnit')}>
                 <option value="hours">{t('projects.unitHours')}</option>
                 <option value="days">{t('projects.unitDays')}</option>
               </Select>
-              <Select value={goalPeriod} onChange={(e) => setGoalPeriod(e.target.value as GoalPeriod)} className="w-auto">
+              <Select value={goalPeriod} onChange={(e) => setGoalPeriod(e.target.value as GoalPeriod)} className="w-auto" aria-label={t('projects.goalPeriod')}>
                 <option value="week">{t('projects.perWeek')}</option>
                 <option value="month">{t('projects.perMonth')}</option>
               </Select>
@@ -359,7 +359,11 @@ function TagList() {
 
   const add = async () => {
     const value = name.trim()
-    if (!value || tagList.some((tag) => tag.name.toLowerCase() === value.toLowerCase())) return
+    if (!value) return
+    if (tagList.some((tag) => tag.name.toLowerCase() === value.toLowerCase())) {
+      toast(t('errors.duplicate'), 'error')
+      return
+    }
     await create.mutateAsync(value)
     setName('')
   }

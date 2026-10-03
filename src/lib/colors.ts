@@ -40,3 +40,11 @@ export function readableText(hex: string): string {
   // Contrast against white vs against near-black ink.
   return (1.05 / (luminance + 0.05)) >= ((luminance + 0.05) / 0.06) ? '#FFFFFF' : '#1A1A1A'
 }
+
+/** Mixes a color with a background, `amount` being the share of the color. */
+export function tint(hex: string, background: string, amount: number): string {
+  const parse = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+  const a = parse(hex)
+  const b = parse(background)
+  return '#' + a.map((v, i) => Math.round(v * amount + b[i] * (1 - amount)).toString(16).padStart(2, '0')).join('')
+}

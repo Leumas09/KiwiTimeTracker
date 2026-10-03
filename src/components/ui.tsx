@@ -4,7 +4,7 @@ import clsxBase, { type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
+import { forwardRef, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
 const clsx = (...values: ClassValue[]) => twMerge(clsxBase(values))
 
@@ -80,7 +80,24 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   return <select ref={ref} className={clsx(fieldClass, 'pr-8', className)} {...props} />
 })
 
-export function Field({ label, hint, children, className }: { label: string; hint?: ReactNode; children: ReactNode; className?: string }) {
+/**
+ * Labelled form field. Use `group` when the content is not a single native
+ * control (segmented buttons, swatches, several inputs): a <label> would
+ * otherwise rename the first button inside it.
+ */
+export function Field({ label, hint, children, className, group }: { label: string; hint?: ReactNode; children: ReactNode; className?: string; group?: boolean }) {
+  const id = useId()
+  if (group) {
+    return (
+      <div role="group" aria-labelledby={id} className={clsx('flex flex-col gap-1.5', className)}>
+        <span id={id} className="text-sm font-medium text-ink-2">
+          {label}
+        </span>
+        {children}
+        {hint && <span className="text-xs text-subtle">{hint}</span>}
+      </div>
+    )
+  }
   return (
     <label className={clsx('flex flex-col gap-1.5', className)}>
       <span className="text-sm font-medium text-ink-2">{label}</span>

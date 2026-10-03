@@ -1,4 +1,4 @@
-import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
@@ -9,7 +9,7 @@ import { Onboarding } from './components/Onboarding'
 import { PomodoroProvider } from './components/Pomodoro'
 import { Spinner } from './components/ui'
 import { useProfile, useRealtimeSync } from './data/hooks'
-import { setStoredLocale } from './i18n'
+import i18next, { setStoredLocale } from './i18n'
 import { useApplyTheme } from './lib/theme'
 import { LoginPage } from './pages/LoginPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -22,10 +22,24 @@ const CalendarPage = lazy(() => import('./pages/CalendarPage').then((m) => ({ de
 const TimesheetPage = lazy(() => import('./pages/TimesheetPage').then((m) => ({ default: m.TimesheetPage })))
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 
+/** Turns storage errors into a message the user can act on. */
+function friendlyError(error: Error): string {
+  const message = error.message ?? ''
+  if (/duplicate key|unique constraint/i.test(message)) return i18next.t('errors.duplicate')
+  if (/one_running|already running/i.test(message)) return i18next.t('errors.running')
+  if (/end_after_start|after start/i.test(message)) return i18next.t('errors.endBeforeStart')
+  if (/failed to fetch|networkerror|load failed/i.test(message)) return i18next.t('errors.network')
+  if (/jwt|not authenticated|401/i.test(message)) return i18next.t('errors.session')
+  return i18next.t('errors.generic', { message })
+}
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
   mutationCache: new MutationCache({
-    onError: (error) => toast(error.message, 'error'),
+    onError: (error) => toast(friendlyError(error), 'error'),
+  }),
+  queryCache: new QueryCache({
+    onError: (error) => toast(friendlyError(error), 'error'),
   }),
 })
 
@@ -45,7 +59,8 @@ function Shell() {
   useApplyTheme(profile?.theme ?? 'system')
 
   useEffect(() => {
-    if (!profile) return
+    // Before onboarding, keep the browser language: onboarding asks for it.
+    if (!profile || !profile.onboarded) return
     if (i18n.language !== profile.locale) i18n.changeLanguage(profile.locale)
     setStoredLocale(profile.locale)
     document.documentElement.lang = profile.locale

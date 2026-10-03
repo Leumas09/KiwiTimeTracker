@@ -200,17 +200,17 @@ alter table public.tags enable row level security;
 alter table public.time_entries enable row level security;
 
 create policy "profiles: owner reads" on public.profiles
-  for select using (id = auth.uid());
+  for select to authenticated using (id = auth.uid());
 create policy "profiles: owner inserts" on public.profiles
-  for insert with check (id = auth.uid());
+  for insert to authenticated with check (id = auth.uid());
 create policy "profiles: owner updates" on public.profiles
-  for update using (id = auth.uid()) with check (id = auth.uid());
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
 create policy "categories: owner all" on public.categories
-  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 create policy "projects: owner all" on public.projects
-  for all using (user_id = auth.uid())
+  for all to authenticated using (user_id = auth.uid())
   with check (
     user_id = auth.uid()
     and (category_id is null or exists (
@@ -219,10 +219,10 @@ create policy "projects: owner all" on public.projects
   );
 
 create policy "tags: owner all" on public.tags
-  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+  for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 create policy "time_entries: owner all" on public.time_entries
-  for all using (user_id = auth.uid())
+  for all to authenticated using (user_id = auth.uid())
   with check (
     user_id = auth.uid()
     and (project_id is null or exists (

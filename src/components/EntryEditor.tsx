@@ -2,7 +2,7 @@ import { addDays, differenceInSeconds } from 'date-fns'
 import { Copy, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEntryMutations, useSettings } from '../data/hooks'
+import { useEntryMutations, useLabels, useSettings } from '../data/hooks'
 import { atMinutes, fromDayKey, toDateInput, toTimeInput } from '../lib/dates'
 import { formatDuration, parseDuration, parseTimeOfDay } from '../lib/duration'
 import type { TimeEntry } from '../lib/types'
@@ -20,6 +20,7 @@ export function EntryEditor({ draft, onClose }: { draft: EntryDraft | null; onCl
 function EntryEditorForm({ draft, onClose }: { draft: EntryDraft; onClose: () => void }) {
   const { t } = useTranslation()
   const settings = useSettings()
+  const labels = useLabels()
   const confirm = useConfirm()
   const { create, update, remove } = useEntryMutations()
   const running = draft.id !== undefined && draft.end === null
@@ -120,7 +121,7 @@ function EntryEditorForm({ draft, onClose }: { draft: EntryDraft; onClose: () =>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('timer.placeholder')} autoFocus />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('entry.project')}>
+          <Field label={labels.level2}>
             <ProjectPicker value={projectId} onChange={setProjectId} variant="field" />
           </Field>
           <Field label={t('entry.tags')}>

@@ -15,7 +15,8 @@
   --ink: #262626;
   --ink-2: #404040;
   --muted: #595959;
-  --subtle: #7f7f7f;
+  /* Brand grey 50 % (#7f7f7f) is too light for small UI text (4:1). */
+  --subtle: #6b6b6b;
   --brand: #729928;
   --brand-strong: #4a7c29;
   --brand-strong-hover: #3e6a22;
@@ -26,7 +27,7 @@
   --brand-line: #dce9cb;
   --danger: #b42318;
   --danger-soft: #fdecea;
-  --warning: #9a6700;
+  --warning: #7a5200;
   --warning-soft: #fff4d6;
   --focus: #63a537;
 }
@@ -42,7 +43,7 @@
   --ink: #edf0e9;
   --ink-2: #d7dcd1;
   --muted: #aab2a2;
-  --subtle: #868e7f;
+  --subtle: #8f978a;
   --brand: #a9d453;
   --brand-strong: #99cb38;
   --brand-strong-hover: #aad64f;
@@ -127,7 +128,7 @@ body {
 }
 
 .kiwi-calendar .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
-  color: var(--brand);
+  color: var(--brand-strong);
   font-weight: 700;
 }
 
@@ -143,6 +144,11 @@ body {
   border-radius: 6px;
   padding: 1px 2px;
   box-shadow: 0 0 0 1px var(--surface);
+}
+
+/* Tinted block with a solid project-colored edge, ink text on top. */
+.kiwi-calendar .fc-timegrid-event {
+  border-width: 0 0 0 4px;
 }
 
 .kiwi-calendar .fc-scrollgrid {

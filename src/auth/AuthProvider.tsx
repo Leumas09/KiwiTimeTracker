@@ -10,6 +10,8 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 // eslint-disable-next-line react-refresh/only-export-components
 export const isDemo = !url || !anonKey
 const supabase: SupabaseClient | null = isDemo ? null : createClient(url!, anonKey!)
+// One demo backend per page, created once.
+const demoApi: DataApi | null = isDemo ? createDemoApi() : null
 
 export type OAuthProvider = 'google' | 'azure'
 
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const userId = isDemo ? DEMO_USER_ID : (session?.user.id ?? null)
 
   const api = useMemo<DataApi | null>(() => {
-    if (isDemo) return createDemoApi()
+    if (demoApi) return demoApi
     return supabase && userId ? createSupabaseApi(supabase, userId) : null
   }, [userId])
 

@@ -107,7 +107,7 @@ export function SettingsPage() {
       </Section>
 
       <Section title={t('settings.preferences')}>
-        <Field label={t('settings.language')}>
+        <Field label={t('settings.language')} group>
           <Segmented
             value={settings.locale}
             onChange={(locale) => {
@@ -120,7 +120,7 @@ export function SettingsPage() {
             ]}
           />
         </Field>
-        <Field label={t('settings.theme')}>
+        <Field label={t('settings.theme')} group>
           <Segmented
             value={settings.theme}
             onChange={(theme) => save({ theme })}
@@ -131,7 +131,7 @@ export function SettingsPage() {
             ]}
           />
         </Field>
-        <Field label={t('settings.weekStart')}>
+        <Field label={t('settings.weekStart')} group>
           <Segmented
             value={String(settings.weekStart) as '0' | '1'}
             onChange={(v) => save({ weekStart: Number(v) as 0 | 1 })}
@@ -165,9 +165,9 @@ export function SettingsPage() {
             ))}
           </Select>
         </Field>
-        <Field label={t('settings.rounding')} hint={t('settings.roundingHint')}>
+        <Field label={t('settings.rounding')} hint={t('settings.roundingHint')} group>
           <div className="flex flex-wrap gap-2">
-            <Select value={settings.roundingMinutes} onChange={(e) => save({ roundingMinutes: Number(e.target.value) })} className="w-auto">
+            <Select aria-label={t('settings.rounding')} value={settings.roundingMinutes} onChange={(e) => save({ roundingMinutes: Number(e.target.value) })} className="w-auto">
               {[0, 1, 5, 6, 10, 15, 30, 60].map((m) => (
                 <option key={m} value={m}>
                   {m === 0 ? t('settings.noRounding') : t('settings.minutes', { count: m })}
@@ -175,6 +175,7 @@ export function SettingsPage() {
               ))}
             </Select>
             <Select
+              aria-label={t('settings.roundingMode')}
               value={settings.roundingMode}
               onChange={(e) => save({ roundingMode: e.target.value as RoundingMode })}
               disabled={!settings.roundingMinutes}

@@ -140,18 +140,20 @@ const clone = <T>(v: T): T => structuredClone(v)
 const byName = <T extends { name: string }>(a: T, b: T) => a.name.localeCompare(b.name)
 
 export function createDemoApi(): DataApi {
+  // Every call starts from what is in localStorage (see `fresh` below), so
+  // several tabs can work on the same data. Other tabs learn about a change
+  // through the browser's "storage" event.
   let store = load()
   const listeners = new Set<(table: Table) => void>()
-  const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('kiwi-demo') : null
+  const tables: Table[] = ['profiles', 'categories', 'projects', 'tags', 'time_entries']
 
-  channel?.addEventListener('message', (event: MessageEvent<Table>) => {
-    store = load()
-    listeners.forEach((l) => l(event.data))
+  window.addEventListener('storage', (event) => {
+    if (event.key !== KEY) return
+    listeners.forEach((l) => tables.forEach((t) => l(t)))
   })
 
-  function commit(table: Table) {
+  function commit() {
     save(store)
-    channel?.postMessage(table)
   }
 
   function find<T extends { id: string }>(list: T[], id: string): T {
@@ -166,7 +168,7 @@ export function createDemoApi(): DataApi {
     },
     async updateProfile(patch) {
       store.profile = { ...store.profile, ...patch }
-      commit('profiles')
+      commit()
       return clone(store.profile)
     },
 
@@ -176,12 +178,12 @@ export function createDemoApi(): DataApi {
     async createCategory(input) {
       const c: Category = { ...input, id: uuid(), createdAt: new Date().toISOString() }
       store.categories.push(c)
-      commit('categories')
+      commit()
       return clone(c)
     },
     async updateCategory(id, patch) {
       Object.assign(find(store.categories, id), patch)
-      commit('categories')
+      commit()
       return clone(find(store.categories, id))
     },
     async deleteCategory(id) {
@@ -189,7 +191,7 @@ export function createDemoApi(): DataApi {
       store.projects.forEach((p) => {
         if (p.categoryId === id) p.categoryId = null
       })
-      commit('categories')
+      commit()
     },
 
     async listProjects() {
@@ -198,12 +200,12 @@ export function createDemoApi(): DataApi {
     async createProject(input) {
       const p: Project = { ...input, id: uuid(), createdAt: new Date().toISOString() }
       store.projects.push(p)
-      commit('projects')
+      commit()
       return clone(p)
     },
     async updateProject(id, patch) {
       Object.assign(find(store.projects, id), patch)
-      commit('projects')
+      commit()
       return clone(find(store.projects, id))
     },
     async deleteProject(id) {
@@ -211,7 +213,7 @@ export function createDemoApi(): DataApi {
       store.entries.forEach((e) => {
         if (e.projectId === id) e.projectId = null
       })
-      commit('projects')
+      commit()
     },
 
     async listTags() {
@@ -221,12 +223,12 @@ export function createDemoApi(): DataApi {
       if (store.tags.some((t) => t.name === name)) throw new Error('duplicate key value violates unique constraint')
       const t: Tag = { id: uuid(), name }
       store.tags.push(t)
-      commit('tags')
+      commit()
       return clone(t)
     },
     async updateTag(id, name) {
       find(store.tags, id).name = name
-      commit('tags')
+      commit()
       return clone(find(store.tags, id))
     },
     async deleteTag(id) {
@@ -234,7 +236,7 @@ export function createDemoApi(): DataApi {
       store.entries.forEach((e) => {
         e.tagIds = e.tagIds.filter((t) => t !== id)
       })
-      commit('tags')
+      commit()
     },
 
     async listEntries(range) {
@@ -252,7 +254,7 @@ export function createDemoApi(): DataApi {
       if (input.end === null && store.entries.some((e) => e.end === null)) throw new Error('A timer is already running')
       const e: TimeEntry = { ...input, id: uuid() }
       store.entries.push(e)
-      commit('time_entries')
+      commit()
       return clone(e)
     },
     async updateEntry(id, patch) {
@@ -260,12 +262,12 @@ export function createDemoApi(): DataApi {
       const next = { ...e, ...patch }
       if (next.end && next.end < next.start) throw new Error('End must be after start')
       Object.assign(e, patch)
-      commit('time_entries')
+      commit()
       return clone(e)
     },
     async deleteEntry(id) {
       store.entries = store.entries.filter((e) => e.id !== id)
-      commit('time_entries')
+      commit()
     },
     async startTimer({ projectId, description, tagIds, start }) {
       const at = (start ?? new Date()).toISOString()
@@ -274,7 +276,7 @@ export function createDemoApi(): DataApi {
       })
       const e: TimeEntry = { id: uuid(), projectId, description, tagIds, start: at, end: null }
       store.entries.push(e)
-      commit('time_entries')
+      commit()
       return clone(e)
     },
     async stopTimer(id, end) {
@@ -286,5 +288,19 @@ export function createDemoApi(): DataApi {
       return () => listeners.delete(onChange)
     },
   }
-  return api
+  return fresh(api)
+
+  /** Reloads the store before each data call. */
+  function fresh(target: DataApi): DataApi {
+    const wrapped = { ...target }
+    for (const key of Object.keys(target) as (keyof DataApi)[]) {
+      if (key === 'subscribe') continue
+      const fn = target[key] as (...args: unknown[]) => unknown
+      ;(wrapped as Record<string, unknown>)[key] = (...args: unknown[]) => {
+        store = load()
+        return fn(...args)
+      }
+    }
+    return wrapped
+  }
 }

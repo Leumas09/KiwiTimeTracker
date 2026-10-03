@@ -13,27 +13,13 @@ process.on('unhandledRejection', (error) => {
   process.exit(1)
 })
 
-await db.exec(`
-  create schema auth;
-  create table auth.users (id uuid primary key, raw_user_meta_data jsonb default '{}'::jsonb);
-  create function auth.uid() returns uuid language sql stable as
-    $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-  create role authenticated nologin;
-  create publication supabase_realtime;
-`)
+await db.exec(readFileSync('supabase/tests/supabase-stub.sql', 'utf8'))
 
 const dir = 'supabase/migrations'
 for (const file of readdirSync(dir).sort()) {
   await db.exec(readFileSync(join(dir, file), 'utf8'))
   console.log(`applied ${file}`)
 }
-
-// Supabase grants table access to the authenticated role by default.
-await db.exec(`
-  grant usage on schema public to authenticated;
-  grant usage on schema auth to authenticated;
-  grant all on all tables in schema public to authenticated;
-`)
 
 const alice = '00000000-0000-0000-0000-00000000000a'
 const bob = '00000000-0000-0000-0000-00000000000b'

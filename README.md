@@ -76,9 +76,27 @@ Le front est un site statique. Sur Vercel : importer le dépôt, ajouter `VITE_S
 | `npm run build` | Typecheck et build de production (avec service worker PWA) |
 | `npm run preview` | Sert le build localement |
 | `npm run lint` | ESLint |
-| `npm test` | Tests unitaires (durées, arrondis, agrégations, budgets) |
-| `npm run test:sql` | Applique les migrations sur PGlite et vérifie RLS, timer unique, nettoyage des tags |
 | `npm run icons` | Régénère le logo SVG et les icônes PWA (Chromium requis) |
+
+## Tests
+
+| Niveau | Commande | Ce qui est vérifié |
+|---|---|---|
+| Unitaires | `npm test` | Durées, arrondis, saisie des heures, agrégations, budgets, projection |
+| SQL | `npm run test:sql` | Migrations sur PGlite : RLS, un seul timer en cours, nettoyage des tags |
+| Intégration | `npm run test:integration` | La couche `supabaseApi` contre un vrai Postgres + PostgREST : profils, CRUD, RPC du timer, pagination au-delà de 1 000 lignes, isolation des comptes |
+| End-to-end | `npm run test:e2e` | Toute l'interface en mode démo, sur ordinateur et mobile : timer, saisie manuelle, éditeur, calendrier (sélection, glisser-déposer), timesheet, rapports et filtres, projets, tags, réglages, Pomodoro, synchro entre onglets, PWA, accessibilité (axe), absence d'erreurs console |
+| End-to-end Supabase | `E2E_SUPABASE=1 npm run test:e2e` | L'app construite pour Supabase : page de connexion et redirection OAuth, onboarding enregistré en base, timer conservé côté serveur, isolation, perte de réseau, déconnexion |
+
+Les tests d'intégration et le mode Supabase des tests E2E ont besoin d'un Postgres et d'un PostgREST locaux :
+
+```bash
+scripts/integration-env.sh start   # Postgres 16 + PostgREST (binaire local ou Docker)
+npm run test:all                   # tout, du lint aux tests E2E Supabase
+scripts/integration-env.sh stop
+```
+
+La CI GitHub (`.github/workflows/ci.yml`) lance l'ensemble à chaque pull request.
 
 ## Architecture
 

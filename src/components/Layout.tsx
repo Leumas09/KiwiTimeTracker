@@ -53,7 +53,7 @@ export function Layout() {
         <div className="flex items-center gap-2.5 px-5 py-5">
           <img src="/logo.svg" alt="" className="size-9" />
           <div className="leading-tight">
-            <div className="font-display text-base font-semibold text-brand">Kiwi Time</div>
+            <div className="font-display text-base font-semibold text-brand-strong">Kiwi Time</div>
             <div className="text-xs text-subtle">Tracker</div>
           </div>
         </div>

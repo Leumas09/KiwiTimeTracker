@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { addDays, endOfDay, startOfDay, subDays } from 'date-fns'
 import { Clock, ListPlus, Play, SkipForward, Square, Timer as TimerIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -9,6 +8,7 @@ import { formatClock, parseTimeOfDay } from '../lib/duration'
 import { entrySeconds } from '../lib/stats'
 import { useColor } from '../lib/theme'
 import type { TimeEntry } from '../lib/types'
+import { EntryEditor } from './EntryEditor'
 import { ProjectPicker, TagPicker } from './pickers'
 import { usePomodoro } from './Pomodoro'
 import { Button, ColorDot, IconButton, Input } from './ui'
@@ -40,15 +40,14 @@ export function TimerBar() {
   const [manualDay, setManualDay] = useState(toDateInput(new Date()))
   const [manualStart, setManualStart] = useState('')
   const [manualEnd, setManualEnd] = useState('')
+  const [editingRunning, setEditingRunning] = useState(false)
 
-  // While running, the inputs mirror the running entry.
-  const [runningId, setRunningId] = useState<string | null>(null)
-  if ((running?.id ?? null) !== runningId) {
-    setRunningId(running?.id ?? null)
-    setDescription(running?.description ?? '')
-    setProjectId(running?.projectId ?? null)
-    setTagIds(running?.tagIds ?? [])
-  }
+  // While a timer runs, the bar shows the running entry itself (so edits made
+  // elsewhere appear at once); a local draft exists only while typing.
+  const [draft, setDraft] = useState<string | null>(null)
+  const shownDescription = running ? (draft ?? running.description) : description
+  const shownProjectId = running ? running.projectId : projectId
+  const shownTagIds = running ? running.tagIds : tagIds
 
   const elapsed = running ? entrySeconds(running, now) : 0
 
@@ -80,7 +79,10 @@ export function TimerBar() {
 
   const input = { description: description.trim(), projectId, tagIds }
 
-  const onStart = () => start.mutate(input)
+  const onStart = () => {
+    start.mutate(input)
+    reset()
+  }
 
   const onStop = () => {
     if (!running) return
@@ -123,12 +125,13 @@ export function TimerBar() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-3 py-2 sm:flex-nowrap sm:gap-2 sm:px-6">
         <div className="relative min-w-0 flex-1 basis-full sm:basis-auto">
           <input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={shownDescription}
+            onChange={(e) => (running ? setDraft(e.target.value) : setDescription(e.target.value))}
             onFocus={() => setFocused(true)}
             onBlur={() => {
               window.setTimeout(() => setFocused(false), 150)
-              if (running && description.trim() !== running.description) patchRunning({ description: description.trim() })
+              if (running && draft !== null && draft.trim() !== running.description) patchRunning({ description: draft.trim() })
+              setDraft(null)
             }}
             onKeyDown={(e) => {
               if (e.key !== 'Enter') return
@@ -154,7 +157,7 @@ export function TimerBar() {
                     >
                       <span className="truncate text-ink">{s.description}</span>
                       {p && (
-                        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-xs" style={{ color: color(p.color) }}>
+                        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-ink-2">
                           <ColorDot color={color(p.color)} />
                           {p.name}
                         </span>
@@ -167,20 +170,8 @@ export function TimerBar() {
           )}
         </div>
 
-        <ProjectPicker
-          value={projectId}
-          onChange={(id) => {
-            setProjectId(id)
-            patchRunning({ projectId: id })
-          }}
-        />
-        <TagPicker
-          value={tagIds}
-          onChange={(ids) => {
-            setTagIds(ids)
-            patchRunning({ tagIds: ids })
-          }}
-        />
+        <ProjectPicker value={shownProjectId} onChange={(id) => (running ? patchRunning({ projectId: id }) : setProjectId(id))} />
+        <TagPicker value={shownTagIds} onChange={(ids) => (running ? patchRunning({ tagIds: ids }) : setTagIds(ids))} />
 
         {mode === 'manual' && !running ? (
           <div className="ml-auto flex items-center gap-1.5">
@@ -199,9 +190,19 @@ export function TimerBar() {
                 <TimerIcon size={13} /> {formatClock(pomodoroLeft).replace(/^0:/, '')}
               </span>
             )}
-            <span className={clsx('tabular min-w-[5.5rem] text-right font-display text-lg font-semibold', running ? 'text-ink' : 'text-subtle')}>
-              {formatClock(elapsed)}
-            </span>
+            {running ? (
+              <button
+                type="button"
+                onClick={() => setEditingRunning(true)}
+                title={t('timer.editRunning')}
+                aria-label={t('timer.editRunning')}
+                className="tabular min-w-[5.5rem] rounded-md px-1 text-right font-display text-lg font-semibold text-ink hover:bg-surface-3"
+              >
+                {formatClock(elapsed)}
+              </button>
+            ) : (
+              <span className="tabular min-w-[5.5rem] text-right font-display text-lg font-semibold text-subtle">{formatClock(elapsed)}</span>
+            )}
             {running ? (
               <button
                 type="button"
@@ -243,6 +244,8 @@ export function TimerBar() {
           )}
         </div>
       </div>
+
+      <EntryEditor draft={editingRunning && running ? running : null} onClose={() => setEditingRunning(false)} />
 
       {(phase === 'shortBreak' || phase === 'longBreak' || phase === 'ready') && (
         <div className="border-t border-brand-line bg-brand-soft">

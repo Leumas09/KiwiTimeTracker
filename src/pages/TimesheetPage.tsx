@@ -117,7 +117,7 @@ export function TimesheetPage() {
             <tr className="bg-surface-2 text-left">
               <th className="px-4 py-2.5 font-semibold text-ink-2">{labels.level2}</th>
               {days.map((d) => (
-                <th key={d.toISOString()} className={clsx('w-20 px-1 py-2.5 text-center font-semibold capitalize', isToday(d) ? 'text-brand' : 'text-ink-2')}>
+                <th key={d.toISOString()} className={clsx('w-20 px-1 py-2.5 text-center font-semibold capitalize', isToday(d) ? 'text-brand-strong' : 'text-ink-2')}>
                   <div>{fmt.date(d, 'EEE')}</div>
                   <div className="text-xs font-normal text-subtle">{fmt.date(d, 'd MMM')}</div>
                 </th>
@@ -161,7 +161,7 @@ export function TimesheetPage() {
                   {s ? fmt.duration(s) : '–'}
                 </td>
               ))}
-              <td className="tabular px-4 py-2.5 text-right font-bold text-brand">{fmt.duration(weekTotal)}</td>
+              <td className="tabular px-4 py-2.5 text-right font-bold text-brand-strong">{fmt.duration(weekTotal)}</td>
             </tr>
           </tfoot>
         </table>

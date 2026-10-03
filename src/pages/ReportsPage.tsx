@@ -632,7 +632,7 @@ function Periodic({ entries, unit, now }: { entries: TimeEntry[]; unit: Unit; no
                   {cell([...(grid.get(c)?.values() ?? [])].reduce((a, b) => a + b, 0))}
                 </td>
               ))}
-              <td className="tabular px-4 py-2 text-right font-bold text-brand sm:px-5">{cell(total)}</td>
+              <td className="tabular px-4 py-2 text-right font-bold text-brand-strong sm:px-5">{cell(total)}</td>
             </tr>
           </tfoot>
         </table>
