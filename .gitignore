@@ -10,3 +10,4 @@ dist-supabase
 test-results
 playwright-report
 .integration
+shots
