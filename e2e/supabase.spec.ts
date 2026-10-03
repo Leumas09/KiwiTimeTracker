@@ -42,6 +42,12 @@ function session(user: { id: string; email: string }) {
   })
 }
 
+/** Completes onboarding and waits until the server has stored it. */
+async function finishOnboarding(page: Page, user: { id: string }) {
+  await page.getByRole('button', { name: 'C’est parti' }).click()
+  await expect.poll(() => sql(`select onboarded from public.profiles where id = '${user.id}'`)).toBe('t')
+}
+
 async function signIn(page: Page, user: { id: string; email: string }) {
   await page.goto('/')
   await page.evaluate(([key, value]) => localStorage.setItem(key, value), [STORAGE_KEY, session(user)])
@@ -57,11 +63,7 @@ test('shows the login page and starts the OAuth flows', async ({ page }) => {
   expect(new URL(page.url()).searchParams.get('redirect_to')).toBe('http://localhost:4175')
 
   await page.goto('/')
-  await page.getByRole('button', { name: 'Continuer avec Microsoft' }).click()
-  await page.waitForURL(/\/auth\/v1\/authorize/)
-  const params = new URL(page.url()).searchParams
-  expect(params.get('provider')).toBe('azure')
-  expect(params.get('scopes')).toContain('email')
+  await expect(page.getByRole('button', { name: /Microsoft/ })).toHaveCount(0)
 })
 
 test('a new account sets up its vocabulary and tracks time', async ({ page }) => {
@@ -139,7 +141,7 @@ test('accounts never see each other', async ({ page }) => {
   sql(`insert into public.projects (user_id, name) values ('${owner.id}', 'Projet confidentiel')`)
   const other = createUser('Other')
   await signIn(page, other)
-  await page.getByRole('button', { name: 'C’est parti' }).click()
+  await finishOnboarding(page, other)
   await page.goto('/projects')
   await expect(page.getByText('Rien ici pour l’instant.')).toBeVisible()
   await expect(page.getByText('Projet confidentiel')).toHaveCount(0)
@@ -148,7 +150,7 @@ test('accounts never see each other', async ({ page }) => {
 test('explains when the server cannot be reached', async ({ page }) => {
   const user = createUser('Offline')
   await signIn(page, user)
-  await page.getByRole('button', { name: 'C’est parti' }).click()
+  await finishOnboarding(page, user)
   await page.goto('/timer')
   await page.route('**/rest/v1/**', (route) => route.abort())
   await descriptionInput(page).fill('Hors ligne')
@@ -160,7 +162,7 @@ test('explains when the server cannot be reached', async ({ page }) => {
 test('signs out', async ({ page }) => {
   const user = createUser('Leaving')
   await signIn(page, user)
-  await page.getByRole('button', { name: 'C’est parti' }).click()
+  await finishOnboarding(page, user)
   await page.getByRole('button', { name: 'Se déconnecter' }).click()
   await expect(page.getByRole('button', { name: 'Continuer avec Google' })).toBeVisible()
   expect(await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY)).toBeNull()

@@ -139,7 +139,7 @@ $$;
 create trigger tags_cleanup after delete on public.tags
   for each row execute function public.remove_deleted_tag();
 
--- New users get a profile, named from their Google or Microsoft account.
+-- New users get a profile, named from their Google account.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql

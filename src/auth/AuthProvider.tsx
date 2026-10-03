@@ -13,7 +13,7 @@ const supabase: SupabaseClient | null = isDemo ? null : createClient(url!, anonK
 // One demo backend per page, created once.
 const demoApi: DataApi | null = isDemo ? createDemoApi() : null
 
-export type OAuthProvider = 'google' | 'azure'
+export type OAuthProvider = 'google'
 
 interface AuthState {
   status: 'loading' | 'signedOut' | 'signedIn'
@@ -58,11 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!supabase) return
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: {
-          redirectTo: window.location.origin,
-          // Microsoft only returns the email address when asked for it.
-          scopes: provider === 'azure' ? 'email openid profile' : undefined,
-        },
+        options: { redirectTo: window.location.origin },
       })
       if (error) throw error
     },

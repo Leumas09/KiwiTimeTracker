@@ -3,7 +3,7 @@ import { differenceInCalendarDays, endOfDay, startOfDay } from 'date-fns'
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Fragment, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Donut, StackedBars, type Series } from '../components/charts'
 import { EntryEditor, type EntryDraft } from '../components/EntryEditor'
 import { Targets } from '../components/Targets'
@@ -32,6 +32,8 @@ import type { DateRange, TimeEntry } from '../lib/types'
 
 type Tab = 'summary' | 'detailed' | 'periodic' | 'targets'
 
+const UNIT_KEY = 'kiwi-report-unit'
+
 export function ReportsPage() {
   const { t } = useTranslation()
   const settings = useSettings()
@@ -40,7 +42,21 @@ export function ReportsPage() {
   const [preset, setPreset] = useState<RangePreset | 'custom'>('thisMonth')
   const [range, setRange] = useState<DateRange>(() => presetRange('thisMonth', settings.weekStart))
   const [filters, setFilters] = useState<EntryFilters>(EMPTY_FILTERS)
-  const [unit, setUnit] = useState<Unit>('hours')
+  const [unit, setUnitState] = useState<Unit>(() => {
+    try {
+      return localStorage.getItem(UNIT_KEY) === 'days' ? 'days' : 'hours'
+    } catch {
+      return 'hours'
+    }
+  })
+  const setUnit = (next: Unit) => {
+    setUnitState(next)
+    try {
+      localStorage.setItem(UNIT_KEY, next)
+    } catch {
+      // Not remembered, that is all.
+    }
+  }
 
   const { data: fetched = [] } = useEntries(range)
   const { data: running } = useRunningEntry()
@@ -88,7 +104,7 @@ export function ReportsPage() {
       )}
 
       {tab === 'summary' && <Summary entries={entries} range={range} unit={unit} now={now} />}
-      {tab === 'detailed' && <Detailed entries={entries} now={now} />}
+      {tab === 'detailed' && <Detailed entries={entries} unit={unit} now={now} />}
       {tab === 'periodic' && <Periodic entries={entries} unit={unit} now={now} />}
       {tab === 'targets' && <Targets />}
     </div>
@@ -120,6 +136,8 @@ function Filters({
 }) {
   const { t } = useTranslation()
   const labels = useLabels()
+  const settings = useSettings()
+  const fmt = useFormat()
   const { categoryList, projectList, tagList } = useLookup()
 
   const shift = (direction: 1 | -1) => {
@@ -162,16 +180,24 @@ function Filters({
             <ChevronRight size={16} />
           </IconButton>
         </div>
-        <div className="ml-auto">
-          <Segmented
-            size="sm"
-            value={unit}
-            onChange={onUnit}
-            options={[
-              { value: 'hours', label: t('reports.hours') },
-              { value: 'days', label: t('reports.days') },
-            ]}
-          />
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted" id="report-unit">
+            {t('reports.unit')}
+          </span>
+          <div role="group" aria-labelledby="report-unit">
+            <Segmented
+              size="sm"
+              value={unit}
+              onChange={onUnit}
+              options={[
+                { value: 'hours', label: t('reports.hours') },
+                { value: 'days', label: t('reports.daysOf', { hours: fmt.number(settings.dayHours) }) },
+              ]}
+            />
+          </div>
+          <Link to="/settings" className="text-xs text-muted underline-offset-2 hover:text-ink hover:underline" title={t('reports.dayLengthHint')}>
+            {t('reports.dayLength')}
+          </Link>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -452,7 +478,7 @@ function BreakdownTable({
 // Detailed
 // ---------------------------------------------------------------------------
 
-function Detailed({ entries, now }: { entries: TimeEntry[]; now: number }) {
+function Detailed({ entries, unit, now }: { entries: TimeEntry[]; unit: Unit; now: number }) {
   const { t } = useTranslation()
   const settings = useSettings()
   const labels = useLabels()
@@ -472,7 +498,7 @@ function Detailed({ entries, now }: { entries: TimeEntry[]; now: number }) {
       <div className="flex items-center justify-between border-b border-border px-4 py-3 text-sm">
         <span className="text-muted">{t('reports.entriesCount', { count: entries.length })}</span>
         <span>
-          {t('common.total')} <strong className="tabular text-ink">{fmt.duration(total)}</strong>
+          {t('common.total')} <strong className="tabular text-ink">{fmt.value(total, unit)}</strong>
         </span>
       </div>
       <div className="overflow-x-auto">
@@ -508,7 +534,7 @@ function Detailed({ entries, now }: { entries: TimeEntry[]; now: number }) {
                   <td className="tabular whitespace-nowrap px-2 py-2 text-muted">
                     {fmt.time(e.start)} – {e.end ? fmt.time(e.end) : '…'}
                   </td>
-                  <td className="tabular px-4 py-2 text-right font-medium text-ink">{fmt.duration(reportSeconds(e, settings, now))}</td>
+                  <td className="tabular px-4 py-2 text-right font-medium text-ink">{fmt.value(reportSeconds(e, settings, now), unit)}</td>
                 </tr>
               )
             })}

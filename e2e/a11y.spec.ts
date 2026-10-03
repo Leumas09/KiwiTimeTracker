@@ -21,3 +21,21 @@ for (const scheme of ['light', 'dark'] as const) {
     expect(problems).toEqual([])
   })
 }
+
+test('quick entry window and calendar menu are accessible', async ({ page }) => {
+  await openApp(page, 'Pro', '/calendar')
+  await page.locator('.fc-prev-button').click()
+  await page.locator('.fc-day-mon .fc-event').first().click()
+  await page.keyboard.press('ArrowDown')
+  await expect(page.getByRole('listbox')).toBeVisible()
+  const check = async () => {
+    const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+    return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.nodes[0]?.target.join(' ')}`)
+  }
+  expect(await check()).toEqual([])
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Escape')
+  await page.locator('.fc-day-tue .fc-event').first().click({ button: 'right' })
+  await expect(page.getByRole('menu')).toBeVisible()
+  expect(await check()).toEqual([])
+})

@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthProvider'
+import { endOfDay, startOfDay, subDays } from 'date-fns'
+import { useTranslation } from 'react-i18next'
+import { toast } from '../components/feedback'
+import { dayKey, fromDayKey } from '../lib/dates'
 import { buildLookup } from '../lib/stats'
+import { recentActivities } from '../lib/suggestions'
 import type { CategoryInput, DateRange, EntryPatch, NewEntry, Profile, ProjectInput, TimeEntry } from '../lib/types'
 import type { DataApi, StartTimerInput, Table } from './api'
 
@@ -210,4 +215,31 @@ export function useNow(ms = 1000, enabled = true): number {
     return () => window.clearInterval(id)
   }, [ms, enabled])
   return now
+}
+
+/** Activities of the last 60 days, for suggestions. The range only changes once a day. */
+export function useRecentActivities() {
+  const today = dayKey(new Date())
+  const range = useMemo(() => ({ from: startOfDay(subDays(fromDayKey(today), 60)), to: endOfDay(fromDayKey(today)) }), [today])
+  const { data } = useEntries(range)
+  return useMemo(() => recentActivities(data ?? []), [data])
+}
+
+/** Deletes an entry right away and offers to undo it from a toast. */
+export function useDeleteEntry() {
+  const { t } = useTranslation()
+  const { create, remove } = useEntryMutations()
+  return (entry: TimeEntry) => {
+    // A promise, not mutate callbacks: the caller (an editor) may close at once.
+    remove
+      .mutateAsync(entry.id)
+      .then(() =>
+        toast(t('entry.deleted'), 'success', {
+          label: t('common.undo'),
+          onClick: () =>
+            create.mutate({ description: entry.description, projectId: entry.projectId, tagIds: entry.tagIds, start: entry.start, end: entry.end }),
+        }),
+      )
+      .catch(() => undefined)
+  }
 }

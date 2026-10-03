@@ -76,7 +76,7 @@ test('edits made in the running entry dialog show up in the bar', async ({ page 
   await bar.getByRole('button', { name: 'Modifier l’entrée en cours' }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Description').fill('Après')
-  await pickProject(page, dialog.getByRole('button', { name: 'Projet', exact: true }), 'Veille')
+  await pickProject(page, dialog.getByRole('button', { name: 'Choisir : Projet' }), 'Veille')
   await dialog.getByRole('button', { name: 'Enregistrer' }).click()
   await expect(descriptionInput(page)).toHaveValue('Après')
   await expect(bar.getByRole('button', { name: 'Veille' })).toBeVisible()
@@ -128,7 +128,7 @@ test('adds a manual entry, including one past midnight', async ({ page }) => {
 test('suggests recent entries and fills their project', async ({ page }) => {
   const bar = timerBar(page)
   await descriptionInput(page).fill('Revue des')
-  await page.getByRole('button', { name: /Revue des comptes à privilèges/ }).click()
+  await page.getByRole('option', { name: /Revue des comptes à privilèges/ }).click()
   await expect(descriptionInput(page)).toHaveValue('Revue des comptes à privilèges')
   await expect(bar.getByRole('button', { name: 'Audit sécurité' })).toBeVisible()
 })
@@ -167,8 +167,10 @@ test('edits, duplicates and deletes an entry', async ({ page }) => {
 
   await entryRow(page, 'Modifiée').first().getByRole('button', { name: '2 h 15' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click()
-  await page.getByRole('dialog', { name: 'Supprimer l’entrée ?' }).getByRole('button', { name: 'Supprimer' }).click()
   await expect(entryRow(page, 'Modifiée')).toHaveCount(1)
+  // Deleting can be undone from the toast.
+  await page.getByText('Entrée supprimée.').locator('..').getByRole('button', { name: 'Annuler' }).click()
+  await expect(entryRow(page, 'Modifiée')).toHaveCount(2)
 })
 
 test('renames an entry inline', async ({ page }) => {

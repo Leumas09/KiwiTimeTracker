@@ -190,3 +190,58 @@ body {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Weekends: a quiet neutral tint; today keeps its green tint on top. */
+.kiwi-calendar {
+  --weekend: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.kiwi-calendar .fc-timegrid-col.fc-day-sat,
+.kiwi-calendar .fc-timegrid-col.fc-day-sun,
+.kiwi-calendar .fc-col-header-cell.fc-day-sat,
+.kiwi-calendar .fc-col-header-cell.fc-day-sun {
+  background: var(--weekend);
+}
+
+.kiwi-calendar .fc-timegrid-col.fc-day-today,
+.kiwi-calendar .fc-col-header-cell.fc-day-today {
+  background: var(--fc-today-bg-color);
+}
+
+/* Entry being created: dashed outline until saved. */
+.kiwi-calendar .fc-event.kiwi-draft {
+  border: 2px dashed var(--accent-2) !important;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface)) !important;
+}
+
+/* Running entry: a soft pulse on its edge. */
+.kiwi-calendar .fc-event.kiwi-running {
+  border-left-style: dashed;
+}
+
+/* Ctrl + drag: the dragged copy shows a "+" badge and a copy cursor. */
+.kiwi-calendar.kiwi-copying,
+.kiwi-calendar.kiwi-copying * {
+  cursor: copy !important;
+}
+
+.kiwi-calendar.kiwi-copying .fc-event-mirror::after {
+  content: '+';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--brand-strong);
+  color: var(--on-brand);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.kiwi-calendar .fc-col-header-cell-cushion {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}

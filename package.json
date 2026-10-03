@@ -1,7 +1,7 @@
 {
   "name": "kiwi-time-tracker",
   "version": "1.0.0",
-  "description": "Suivi de temps simple et personnel, inspiré de Toggl Track",
+  "description": "Suivi de temps simple et personnel",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -30,6 +30,7 @@
     "@fullcalendar/interaction": "^6.1.21",
     "@fullcalendar/react": "^6.1.21",
     "@fullcalendar/timegrid": "^6.1.21",
+    "@radix-ui/react-context-menu": "^2.3.7",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-popover": "^1.1.23",
     "@supabase/supabase-js": "^2.117.2",

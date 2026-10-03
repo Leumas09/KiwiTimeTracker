@@ -1,6 +1,6 @@
 # Kiwi Time Tracker
 
-Suivi de temps personnel, inspiré de Toggl Track, en plus simple. Le temps est organisé sur deux niveaux dont tu choisis les noms : **Client → Projet** pour un consultant, **Matière → Sujet** pour un étudiant.
+Suivi de temps personnel, simple et rapide. Le temps est organisé sur deux niveaux dont tu choisis les noms : **Client → Projet** pour un consultant, **Matière → Sujet** pour un étudiant.
 
 ![Logo](public/logo.svg)
 
@@ -8,14 +8,16 @@ Suivi de temps personnel, inspiré de Toggl Track, en plus simple. Le temps est 
 
 | Domaine | Ce que fait l'app |
 |---|---|
-| Saisie | Timer start/stop, saisie manuelle, « continuer » une entrée, suggestions à partir des entrées récentes, timer synchronisé entre appareils (onglet fermé, téléphone, ordinateur) |
+| Saisie | Timer start/stop, saisie manuelle, « continuer » une entrée, timer synchronisé entre appareils (onglet fermé, téléphone, ordinateur) |
+| Saisie rapide | Une fenêtre pensée pour le clavier, ouverte à côté du créneau : les activités récentes s'affichent, ↑↓ puis ↵ remplit description, projet et tags d'un coup ; `@` choisit ou crée un projet, `#` un tag ; ↵ enregistre, Ctrl+↵ depuis n'importe quel champ, Échap ferme. Même champ dans la barre du timer |
 | Pomodoro | Cycles travail / pause courte / pause longue, notifications, le cycle survit à un rechargement |
-| Vues | Tableau de bord, liste par jour, calendrier (glisser-déposer, redimensionner, créer par sélection), timesheet semaine (saisie de durées dans les cases) |
+| Vues | Tableau de bord, liste par jour, calendrier, timesheet semaine (saisie de durées dans les cases) |
+| Calendrier | Vues jour, semaine de travail, semaine (mémorisée) ; création et déplacement au pas de 15 min ; week-end grisé ; total par jour ; clic droit (modifier, relancer, dupliquer juste après ou au lendemain, copier, coller, supprimer) ; Ctrl + glisser pour dupliquer ; Ctrl+C / Ctrl+V ; Suppr ; suppression annulable ; raccourcis ← → T 1 5 7 |
 | Organisation | Niveau 1 et niveau 2 renommables, tags, couleurs, archivage |
 | Budgets | Budget total en jours, objectif récurrent en heures ou jours par semaine ou par mois, projection de la date d'épuisement |
-| Rapports | Synthèse graphique (par niveau 1, niveau 2 ou tag), détaillé filtrable, matrice hebdo / mensuelle, budgets et objectifs, affichage en heures ou en jours |
+| Rapports | Synthèse graphique (par niveau 1, niveau 2 ou tag), détaillé filtrable, matrice hebdo / mensuelle, budgets et objectifs, affichage en heures ou en jours (durée d'une journée réglable, 7 h par défaut, choix mémorisé) |
 | Préférences | FR / EN, thème clair / sombre / système, premier jour de la semaine, durée d'une journée, format des durées, arrondi |
-| Comptes | Connexion Google ou Microsoft, données isolées par compte |
+| Comptes | Connexion Google, données isolées par compte |
 | Mobile | PWA installable, navigation adaptée au téléphone |
 
 L'arrondi est appliqué entrée par entrée dans les rapports, le tableau de bord et les budgets. Les entrées gardent leur durée réelle.
@@ -50,21 +52,13 @@ VITE_SUPABASE_ANON_KEY=<clé anon>
 2. *Authorized redirect URI* : `https://<ref>.supabase.co/auth/v1/callback`.
 3. Supabase → **Authentication → Sign In / Providers → Google** : activer, coller *Client ID* et *Client secret*.
 
-### 3. Connexion Microsoft
-
-1. Microsoft Entra admin center → **App registrations → New registration**.
-   - *Supported account types* : comptes de n'importe quel annuaire et comptes Microsoft personnels (ou ton seul tenant si l'app reste interne).
-   - *Redirect URI* (Web) : `https://<ref>.supabase.co/auth/v1/callback`.
-2. **Certificates & secrets → New client secret**, copier la *Value*.
-3. Supabase → **Authentication → Sign In / Providers → Azure** : activer, coller l'*Application (client) ID* et le secret. *Azure Tenant URL* : laisser vide (multi-tenant) ou `https://login.microsoftonline.com/<tenant-id>` pour un seul tenant.
-
-### 4. URLs autorisées
+### 3. URLs autorisées
 
 Supabase → **Authentication → URL Configuration** :
 - *Site URL* : l'URL de production (ex. `https://kiwi-time.vercel.app`).
 - *Redirect URLs* : ajouter `http://localhost:5173` et l'URL de production.
 
-### 5. Déploiement
+### 4. Déploiement
 
 Le front est un site statique. Sur Vercel : importer le dépôt, ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans les variables d'environnement, déployer. `vercel.json` gère la réécriture des routes vers `index.html`. Netlify ou Cloudflare Pages fonctionnent de la même façon (prévoir une règle SPA équivalente).
 
@@ -102,7 +96,7 @@ La CI GitHub (`.github/workflows/ci.yml`) lance l'ensemble à chaque pull reques
 
 ```
 src/
-  auth/AuthProvider.tsx   Session Supabase, OAuth Google / Microsoft, bascule en mode démo
+  auth/AuthProvider.tsx   Session Supabase, OAuth Google, bascule en mode démo
   data/api.ts             Contrat d'accès aux données (DataApi)
   data/supabaseApi.ts     Implémentation Supabase (Postgres + RLS + Realtime)
   data/demoApi.ts         Implémentation locale (localStorage), même contrat

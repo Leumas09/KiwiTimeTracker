@@ -8,10 +8,16 @@ import { Button, Modal } from './ui'
 // Toasts. Also reachable outside React (mutation errors) through `toast()`.
 // ---------------------------------------------------------------------------
 
+interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
 interface Toast {
   id: number
   kind: 'error' | 'success'
   message: string
+  action?: ToastAction
 }
 
 type Listener = (toast: Toast) => void
@@ -19,8 +25,8 @@ const listeners = new Set<Listener>()
 let nextId = 1
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function toast(message: string, kind: Toast['kind'] = 'success') {
-  const t = { id: nextId++, kind, message }
+export function toast(message: string, kind: Toast['kind'] = 'success', action?: ToastAction) {
+  const t = { id: nextId++, kind, message, action }
   listeners.forEach((l) => l(t))
 }
 
@@ -29,7 +35,7 @@ export function Toaster() {
   useEffect(() => {
     const listener: Listener = (t) => {
       setToasts((list) => [...list, t])
-      window.setTimeout(() => setToasts((list) => list.filter((x) => x.id !== t.id)), 4500)
+      window.setTimeout(() => setToasts((list) => list.filter((x) => x.id !== t.id)), t.action ? 7000 : 4500)
     }
     listeners.add(listener)
     return () => {
@@ -48,6 +54,18 @@ export function Toaster() {
         >
           {t.kind === 'error' ? <CircleAlert size={18} /> : <CircleCheck size={18} className="text-accent-2" />}
           {t.message}
+          {t.action && (
+            <button
+              type="button"
+              onClick={() => {
+                t.action!.onClick()
+                setToasts((list) => list.filter((x) => x.id !== t.id))
+              }}
+              className="ml-2 rounded-md px-2 py-1 font-semibold text-brand-strong hover:bg-surface-3"
+            >
+              {t.action.label}
+            </button>
+          )}
         </div>
       ))}
     </div>

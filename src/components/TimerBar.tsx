@@ -1,42 +1,31 @@
-import { addDays, endOfDay, startOfDay, subDays } from 'date-fns'
+import { addDays } from 'date-fns'
 import { Clock, ListPlus, Play, SkipForward, Square, Timer as TimerIcon } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEntries, useEntryMutations, useLookup, useNow, useRunningEntry } from '../data/hooks'
-import { atMinutes, dayKey, fromDayKey, toDateInput } from '../lib/dates'
+import { useEntryMutations, useNow, useRunningEntry } from '../data/hooks'
+import { atMinutes, fromDayKey, toDateInput } from '../lib/dates'
 import { formatClock, parseTimeOfDay } from '../lib/duration'
 import { entrySeconds } from '../lib/stats'
-import { useColor } from '../lib/theme'
 import type { TimeEntry } from '../lib/types'
+import { ActivityInput } from './ActivityInput'
 import { EntryEditor } from './EntryEditor'
 import { ProjectPicker, TagPicker } from './pickers'
 import { usePomodoro } from './Pomodoro'
-import { Button, ColorDot, IconButton, Input } from './ui'
+import { Button, IconButton, Input } from './ui'
 
 type Mode = 'timer' | 'manual'
-
-/** Last two weeks of entries, with a range that only changes once a day. */
-function useRecentEntries() {
-  const today = dayKey(new Date())
-  const range = useMemo(() => ({ from: startOfDay(subDays(fromDayKey(today), 14)), to: endOfDay(fromDayKey(today)) }), [today])
-  return useEntries(range).data ?? []
-}
 
 export function TimerBar() {
   const { t } = useTranslation()
   const { data: running } = useRunningEntry()
   const { start, stop, update, create } = useEntryMutations()
   const pomodoro = usePomodoro()
-  const recent = useRecentEntries()
-  const { projects } = useLookup()
-  const color = useColor()
   const now = useNow(1000, !!running || pomodoro.state.endsAt !== null)
 
   const [mode, setMode] = useState<Mode>('timer')
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string | null>(null)
   const [tagIds, setTagIds] = useState<string[]>([])
-  const [focused, setFocused] = useState(false)
   const [manualDay, setManualDay] = useState(toDateInput(new Date()))
   const [manualStart, setManualStart] = useState('')
   const [manualEnd, setManualEnd] = useState('')
@@ -55,21 +44,6 @@ export function TimerBar() {
     const base = 'Kiwi Time Tracker'
     document.title = running ? `${formatClock(elapsed)} · ${running.description || base}` : base
   }, [running, elapsed])
-
-  const suggestions = useMemo(() => {
-    const q = description.trim().toLowerCase()
-    if (!focused || !q || running) return []
-    const seen = new Set<string>()
-    const out: TimeEntry[] = []
-    for (const e of recent) {
-      const key = `${e.description}|${e.projectId}`
-      if (!e.description || seen.has(key) || !e.description.toLowerCase().includes(q)) continue
-      seen.add(key)
-      out.push(e)
-      if (out.length >= 6) break
-    }
-    return out
-  }, [description, focused, recent, running])
 
   const reset = () => {
     setDescription('')
@@ -110,65 +84,46 @@ export function TimerBar() {
     setManualEnd('')
   }
 
-  const pickSuggestion = (e: TimeEntry) => {
-    setDescription(e.description)
-    setProjectId(e.projectId)
-    setTagIds(e.tagIds)
-    setFocused(false)
-  }
-
   const phase = pomodoro.state.phase
   const pomodoroLeft = pomodoro.state.endsAt ? Math.max(0, (pomodoro.state.endsAt - now) / 1000) : 0
 
   return (
     <div className="border-b border-border bg-surface">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-3 py-2 sm:flex-nowrap sm:gap-2 sm:px-6">
-        <div className="relative min-w-0 flex-1 basis-full sm:basis-auto">
-          <input
-            value={shownDescription}
-            onChange={(e) => (running ? setDraft(e.target.value) : setDescription(e.target.value))}
-            onFocus={() => setFocused(true)}
-            onBlur={() => {
-              window.setTimeout(() => setFocused(false), 150)
-              if (running && draft !== null && draft.trim() !== running.description) patchRunning({ description: draft.trim() })
+        <ActivityInput
+          bare
+          className="min-w-0 flex-1 basis-full sm:basis-auto"
+          label={t('entry.description')}
+          placeholder={t('timer.placeholder')}
+          value={shownDescription}
+          onChange={(v) => (running ? setDraft(v) : setDescription(v))}
+          tagIds={shownTagIds}
+          onApplyActivity={(a) => {
+            if (running) {
               setDraft(null)
-            }}
-            onKeyDown={(e) => {
-              if (e.key !== 'Enter') return
-              e.currentTarget.blur()
-              if (!running && mode === 'timer') onStart()
-              if (!running && mode === 'manual') onAddManual()
-            }}
-            placeholder={t('timer.placeholder')}
-            aria-label={t('entry.description')}
-            className="h-11 w-full rounded-lg bg-transparent px-2 text-base text-ink placeholder:text-subtle focus:bg-surface-2 focus:outline-none"
-          />
-          {suggestions.length > 0 && (
-            <ul className="absolute left-0 right-0 top-12 z-30 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-lg">
-              {suggestions.map((s) => {
-                const p = s.projectId ? projects.get(s.projectId) : undefined
-                return (
-                  <li key={s.id}>
-                    <button
-                      type="button"
-                      onMouseDown={(ev) => ev.preventDefault()}
-                      onClick={() => pickSuggestion(s)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-3"
-                    >
-                      <span className="truncate text-ink">{s.description}</span>
-                      {p && (
-                        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-ink-2">
-                          <ColorDot color={color(p.color)} />
-                          {p.name}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
+              patchRunning({ description: a.description, projectId: a.projectId, tagIds: a.tagIds })
+            } else {
+              setDescription(a.description)
+              setProjectId(a.projectId)
+              setTagIds(a.tagIds)
+            }
+          }}
+          onPickProject={(id) => (running ? patchRunning({ projectId: id }) : setProjectId(id))}
+          onAddTag={(id) => {
+            if (shownTagIds.includes(id)) return
+            if (running) patchRunning({ tagIds: [...shownTagIds, id] })
+            else setTagIds([...tagIds, id])
+          }}
+          onBlur={() => {
+            if (running && draft !== null && draft.trim() !== running.description) patchRunning({ description: draft.trim() })
+            setDraft(null)
+          }}
+          onSubmit={() => {
+            if (running) (document.activeElement as HTMLElement | null)?.blur()
+            else if (mode === 'timer') onStart()
+            else onAddManual()
+          }}
+        />
 
         <ProjectPicker value={shownProjectId} onChange={(id) => (running ? patchRunning({ projectId: id }) : setProjectId(id))} />
         <TagPicker value={shownTagIds} onChange={(ids) => (running ? patchRunning({ tagIds: ids }) : setTagIds(ids))} />
