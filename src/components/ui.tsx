@@ -107,9 +107,9 @@ export function Field({ label, hint, children, className, group }: { label: stri
   )
 }
 
-export function Card({ title, action, children, className }: { title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
+export function Card({ id, title, action, children, className }: { id?: string; title?: ReactNode; action?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={clsx('rounded-xl border border-border bg-surface p-4 sm:p-5', className)}>
+    <section id={id} className={clsx('rounded-xl border border-border bg-surface p-4 sm:p-5', className)}>
       {(title || action) && (
         <header className="mb-3 flex items-center justify-between gap-2">
           {title && <h2 className="font-display text-base font-semibold text-ink">{title}</h2>}

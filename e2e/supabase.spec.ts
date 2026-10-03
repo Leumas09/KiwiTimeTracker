@@ -152,6 +152,9 @@ test('explains when the server cannot be reached', async ({ page }) => {
   await signIn(page, user)
   await finishOnboarding(page, user)
   await page.goto('/timer')
+  // Cut the network only once the page has loaded, then try to save.
+  await expect(descriptionInput(page)).toBeVisible()
+  await expect(page.getByText('Aucune entrée pour l’instant')).toBeVisible()
   await page.route('**/rest/v1/**', (route) => route.abort())
   await descriptionInput(page).fill('Hors ligne')
   await timerBar(page).getByRole('button', { name: 'Démarrer le timer' }).click()

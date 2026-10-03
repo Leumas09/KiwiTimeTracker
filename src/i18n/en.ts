@@ -300,6 +300,10 @@ const en: typeof fr = {
     pomodoroLong: 'Long break',
     pomodoroEvery: 'Long break every',
     account: 'Account',
+    about: 'About',
+    version: 'Version',
+    commit: 'Commit',
+    builtAt: 'Built on',
   },
 }
 

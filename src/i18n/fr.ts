@@ -298,6 +298,10 @@ const fr = {
     pomodoroLong: 'Grande pause',
     pomodoroEvery: 'Grande pause tous les',
     account: 'Compte',
+    about: 'À propos',
+    version: 'Version',
+    commit: 'Commit',
+    builtAt: 'Compilée le',
   },
 }
 

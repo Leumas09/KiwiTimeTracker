@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { useConfirm } from '../components/feedback'
 import { PRESETS } from '../components/Onboarding'
@@ -9,6 +10,7 @@ import { resetDemo } from '../data/demoApi'
 import { useSettings, useUpdateProfile } from '../data/hooks'
 import { formatDuration } from '../lib/duration'
 import type { DurationFormat, Profile, RoundingMode } from '../lib/types'
+import { APP_BUILT_AT, APP_COMMIT_SHORT, APP_COMMIT_URL, APP_VERSION } from '../version'
 
 /** Text/number input saved on blur. */
 function BlurInput({
@@ -44,9 +46,9 @@ function BlurInput({
   )
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+function Section({ id, title, description, children }: { id?: string; title: string; description?: string; children: ReactNode }) {
   return (
-    <Card>
+    <Card id={id}>
       <div className="grid gap-4 md:grid-cols-3">
         <div>
           <h2 className="font-display text-base font-semibold text-ink">{title}</h2>
@@ -70,6 +72,12 @@ export function SettingsPage() {
   const int = (v: string, min: number, max: number) => Math.min(max, Math.max(min, Math.round(Number(v) || min)))
 
   const example = 5400 + 15 * 60 + 30
+
+  // The version in the sidebar links to #about.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }, [hash])
 
   return (
     <div className="flex flex-col gap-4">
@@ -233,6 +241,27 @@ export function SettingsPage() {
             >{t('nav.signOut')}</Button>
           </div>
         )}
+      </Section>
+
+      <Section id="about" title={t('settings.about')}>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+          <dt className="text-muted">{t('settings.version')}</dt>
+          <dd className="tabular font-medium text-ink" data-testid="app-version">{APP_VERSION}</dd>
+          <dt className="text-muted">{t('settings.commit')}</dt>
+          <dd className="tabular text-ink">
+            {APP_COMMIT_URL ? (
+              <a href={APP_COMMIT_URL} target="_blank" rel="noreferrer" className="text-brand-strong underline-offset-2 hover:underline">
+                {APP_COMMIT_SHORT}
+              </a>
+            ) : (
+              '—'
+            )}
+          </dd>
+          <dt className="text-muted">{t('settings.builtAt')}</dt>
+          <dd className="tabular text-ink">
+            {APP_BUILT_AT.toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}
+          </dd>
+        </dl>
       </Section>
     </div>
   )

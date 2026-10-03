@@ -169,3 +169,13 @@ test('works as an installable PWA', async ({ page }) => {
   expect((await res.json()).name).toBe('Kiwi Time Tracker')
   await expect.poll(() => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration())), { timeout: 10_000 }).toBe(true)
 })
+
+test('the build version is shown and links to the about section', async ({ page }) => {
+  await openApp(page)
+  const version = page.getByRole('link', { name: /^v\d+\.\d+\.\d+/ })
+  await expect(version).toBeVisible()
+  await version.click()
+  await expect(page).toHaveURL(/\/settings#about$/)
+  await expect(page.getByRole('heading', { name: 'À propos' })).toBeInViewport()
+  await expect(page.getByTestId('app-version')).toHaveText(/^\d+\.\d+\.\d+$/)
+})
