@@ -85,7 +85,6 @@ export function CalendarPage() {
   const [range, setRange] = useState<DateRange | null>(null)
   const [editing, setEditing] = useState<{ draft: EntryDraft; anchor: Anchor | null } | null>(null)
   const [menu, setMenu] = useState<MenuTarget>(null)
-  const [copying, setCopying] = useState(false)
   const hovered = useRef<TimeEntry | null>(null)
   const pointer = useRef<{ x: number; y: number } | null>(null)
   const { data: entries = [] } = useEntries(range, range !== null)
@@ -211,7 +210,7 @@ export function CalendarPage() {
 
   // Ctrl (or Alt / Cmd) + drag duplicates, like in Outlook.
   const onDrop = (arg: EventDropArg) => {
-    const entry = byId.get(arg.event.id)
+    const entry = byIdRef.current.get(arg.event.id)
     if (entry && (isCopyGesture(arg.jsEvent) || modifier.current) && arg.event.start) {
       arg.revert()
       duplicate(entry, arg.event.start)
@@ -219,6 +218,10 @@ export function CalendarPage() {
     }
     onMove(arg)
   }
+
+  // Toggled on the DOM directly: re-rendering in the middle of a drag would
+  // hand FullCalendar new callbacks and can lose the drop.
+  const setCopying = (on: boolean) => containerRef.current?.classList.toggle('kiwi-copying', on)
 
   const onDragStart = (arg: EventDragStartArg) => {
     setCopying(isCopyGesture(arg.jsEvent) || modifier.current)
@@ -396,6 +399,23 @@ export function CalendarPage() {
     return () => window.removeEventListener('keydown', onKey)
   }, [onKey])
 
+  // Interaction callbacks keep the same identity across renders, so a render
+  // during a drag (data refresh, timer tick) never swaps them mid-gesture.
+  const latest = useRef({ onDatesSet, onSelect, onDrop, onMove, onEventClick, onDragStart, onEventMount })
+  useEffect(() => {
+    latest.current = { onDatesSet, onSelect, onDrop, onMove, onEventClick, onDragStart, onEventMount }
+  })
+  const [stable] = useState(() => ({
+    datesSet: (a: DatesSetArg) => latest.current.onDatesSet(a),
+    select: (a: DateSelectArg) => latest.current.onSelect(a),
+    eventDrop: (a: EventDropArg) => latest.current.onDrop(a),
+    eventResize: (a: EventResizeDoneArg) => latest.current.onMove(a),
+    eventClick: (a: EventClickArg) => latest.current.onEventClick(a),
+    eventDragStart: (a: EventDragStartArg) => latest.current.onDragStart(a),
+    eventDragStop: () => dragCleanup.current(),
+    eventDidMount: (a: EventMountArg) => latest.current.onEventMount(a),
+  }))
+
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const initialView = isMobile ? 'timeGridDay' : (readView() ?? 'timeGridWeek')
 
@@ -437,7 +457,7 @@ export function CalendarPage() {
         <ContextMenu.Trigger asChild>
           <div
             ref={containerRef}
-            className={clsx('kiwi-calendar rounded-xl border border-border bg-surface p-2 sm:p-3', copying && 'kiwi-copying')}
+            className="kiwi-calendar rounded-xl border border-border bg-surface p-2 sm:p-3"
             onContextMenu={onContextMenu}
             onMouseMove={(e) => {
               pointer.current = { x: e.clientX, y: e.clientY }
@@ -473,14 +493,14 @@ export function CalendarPage() {
               editable
               eventResizableFromStart
               events={events}
-              datesSet={onDatesSet}
-              select={onSelect}
-              eventDrop={onDrop}
-              eventResize={onMove}
-              eventClick={onEventClick}
-              eventDragStart={onDragStart}
-              eventDragStop={() => dragCleanup.current()}
-              eventDidMount={onEventMount}
+              datesSet={stable.datesSet}
+              select={stable.select}
+              eventDrop={stable.eventDrop}
+              eventResize={stable.eventResize}
+              eventClick={stable.eventClick}
+              eventDragStart={stable.eventDragStart}
+              eventDragStop={stable.eventDragStop}
+              eventDidMount={stable.eventDidMount}
               eventContent={renderEvent}
               dayHeaderContent={renderDayHeader}
             />

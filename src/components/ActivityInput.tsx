@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { CornerDownLeft, Hash, Plus } from 'lucide-react'
-import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLabels, useLookup, useProjectMutations, useRecentActivities, useTagMutations } from '../data/hooks'
 import { nextColor } from '../lib/colors'
@@ -99,12 +99,24 @@ export function ActivityInput({
     setOpen(true)
   }
 
+  // Caret to restore once React has rendered the new text. Done in a layout
+  // effect, before the next keystroke is handled, so fast typing never lands
+  // in the middle of the text.
+  const pendingCaret = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    if (pendingCaret.current === null || !inputRef.current) return
+    inputRef.current.setSelectionRange(pendingCaret.current, pendingCaret.current)
+    pendingCaret.current = null
+  }, [value])
+
   const replaceToken = (tk: Token) => {
     const text = removeToken(value, tk)
-    onChange(text)
-    setCaret(text.length)
+    // Keep typing right after the text, with a space ready for the next word.
+    const next = text ? `${text} ` : ''
+    pendingCaret.current = next.length
+    onChange(next)
+    setCaret(next.length)
     setHighlight(-1)
-    requestAnimationFrame(() => inputRef.current?.setSelectionRange(text.length, text.length))
   }
 
   const choose = async (option: Option) => {
