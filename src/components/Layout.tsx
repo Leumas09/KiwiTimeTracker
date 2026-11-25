@@ -26,7 +26,7 @@ export function Layout() {
   const queryClient = useQueryClient()
 
   const items: NavItem[] = [
-    { to: '/', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
+    { to: '/dashboard', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
     { to: '/timer', label: t('nav.timer'), icon: <Clock size={20} /> },
     { to: '/calendar', label: t('nav.calendar'), icon: <CalendarDays size={20} /> },
     { to: '/timesheet', label: t('nav.timesheet'), icon: <Table2 size={20} /> },
@@ -34,7 +34,7 @@ export function Layout() {
     { to: '/projects', label: labels.level2Plural, icon: <FolderKanban size={20} /> },
     { to: '/settings', label: t('nav.settings'), icon: <Settings size={20} /> },
   ]
-  const mobileMain = items.filter((i) => ['/', '/timer', '/calendar', '/reports'].includes(i.to))
+  const mobileMain = items.filter((i) => ['/dashboard', '/timer', '/calendar', '/reports'].includes(i.to))
   const mobileMore = items.filter((i) => !mobileMain.includes(i))
 
   const logout = () => {
@@ -63,7 +63,6 @@ export function Layout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
               className={({ isActive }) =>
                 clsx(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -118,13 +117,12 @@ export function Layout() {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === '/'}
             className={({ isActive }) =>
               clsx('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium', isActive ? 'text-brand-strong' : 'text-muted')
             }
           >
             {item.icon}
-            {item.to === '/' ? t('nav.home') : item.label}
+            {item.to === '/dashboard' ? t('nav.home') : item.label}
           </NavLink>
         ))}
         <Popover

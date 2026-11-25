@@ -74,7 +74,9 @@ function Shell() {
       <Onboarding />
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<DashboardPage />} />
+          {/* The calendar is the page used most: open the app on it. */}
+          <Route index element={<Navigate to="/calendar" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="timer" element={<TimerPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="timesheet" element={<TimesheetPage />} />
