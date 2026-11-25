@@ -73,6 +73,8 @@ test('a new account sets up its vocabulary and tracks time', async ({ page }) =>
   // First login: onboarding, as a student.
   await page.getByRole('button', { name: /Étudiant/ }).click()
   await page.getByRole('button', { name: 'C’est parti' }).click()
+  await expect(page).toHaveURL(/\/calendar$/)
+  await page.getByRole('link', { name: 'Tableau de bord' }).click()
   await expect(page.getByRole('heading', { name: 'Bonjour Claire' })).toBeVisible()
   expect(sql(`select level2_label || '/' || onboarded from public.profiles where id = '${user.id}'`)).toBe('Sujet/true')
 
