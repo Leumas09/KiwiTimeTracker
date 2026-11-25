@@ -3,7 +3,7 @@ import { CalendarDays, ChartColumn, Clock, FolderKanban, LayoutDashboard, LogOut
 import { useQueryClient } from '@tanstack/react-query'
 import { Suspense, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth/AuthProvider'
 import { resetDemo } from '../data/demoApi'
 import { useLabels, useSettings } from '../data/hooks'
@@ -24,6 +24,8 @@ export function Layout() {
   const { signOut, isDemo, email } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
   const queryClient = useQueryClient()
+  // The calendar uses the whole width; other pages keep a readable max width.
+  const fullWidth = useLocation().pathname.startsWith('/calendar')
 
   const items: NavItem[] = [
     { to: '/dashboard', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
@@ -96,9 +98,9 @@ export function Layout() {
           <div className="bg-warning-soft px-4 py-1.5 text-center text-xs text-warning">{t('demo.banner')}</div>
         )}
         <div className="sticky top-0 z-20">
-          <TimerBar />
+          <TimerBar fullWidth={fullWidth} />
         </div>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 sm:px-6 md:pb-10">
+        <main className={clsx('mx-auto w-full flex-1 px-4 pb-24 pt-5 sm:px-6 md:pb-10', !fullWidth && 'max-w-6xl')}>
           <Suspense
             fallback={
               <div className="flex justify-center py-16">

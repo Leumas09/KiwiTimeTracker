@@ -17,7 +17,7 @@ test('shows the week with a total and switches to the day view', async ({ page }
 
 test('creates an entry by selecting a slot', async ({ page }) => {
   // Saturday 09:00 → 10:30, always empty in the sample data and visible.
-  const column = page.locator('.fc-timegrid-col').nth(5)
+  const column = page.locator('.fc-timegrid-col.fc-day-sat')
   const box = await column.boundingBox()
   const slot18 = await page.locator('.fc-timegrid-slot-lane[data-time="09:00:00"]').boundingBox()
   const slot19 = await page.locator('.fc-timegrid-slot-lane[data-time="10:00:00"]').boundingBox()

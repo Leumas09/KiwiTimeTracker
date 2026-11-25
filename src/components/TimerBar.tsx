@@ -15,7 +15,9 @@ import { Button, IconButton, Input } from './ui'
 
 type Mode = 'timer' | 'manual'
 
-export function TimerBar() {
+/** `fullWidth` lines the bar up with pages that use the whole width (the calendar). */
+export function TimerBar({ fullWidth = false }: { fullWidth?: boolean }) {
+  const width = fullWidth ? '' : 'max-w-6xl'
   const { t } = useTranslation()
   const { data: running } = useRunningEntry()
   const { start, stop, update, create } = useEntryMutations()
@@ -89,7 +91,7 @@ export function TimerBar() {
 
   return (
     <div className="border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 px-3 py-2 sm:flex-nowrap sm:gap-2 sm:px-6">
+      <div className={`mx-auto flex ${width} flex-wrap items-center gap-1 px-3 py-2 sm:flex-nowrap sm:gap-2 sm:px-6`}>
         <ActivityInput
           bare
           className="min-w-0 flex-1 basis-full sm:basis-auto"
@@ -204,7 +206,7 @@ export function TimerBar() {
 
       {(phase === 'shortBreak' || phase === 'longBreak' || phase === 'ready') && (
         <div className="border-t border-brand-line bg-brand-soft">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-3 py-2 text-sm sm:px-6">
+          <div className={`mx-auto flex ${width} flex-wrap items-center gap-3 px-3 py-2 text-sm sm:px-6`}>
             <TimerIcon size={16} className="text-brand-strong" />
             <span className="font-medium text-ink">
               {phase === 'ready'
