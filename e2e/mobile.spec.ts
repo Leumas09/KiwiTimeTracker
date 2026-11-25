@@ -47,7 +47,7 @@ test('tracks time from the phone', async ({ page }) => {
 
 test('entry editor opens as a bottom sheet', async ({ page }) => {
   await openApp(page, 'Pro', '/timer')
-  await page.locator('li').first().getByRole('button').filter({ hasText: /h|min/ }).first().click()
+  await page.locator('li').first().getByRole('button').filter({ hasText: /\d\d:\d\d – / }).first().click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   const box = (await dialog.boundingBox())!
