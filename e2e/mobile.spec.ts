@@ -47,7 +47,9 @@ test('tracks time from the phone', async ({ page }) => {
 
 test('entry editor opens as a bottom sheet', async ({ page }) => {
   await openApp(page, 'Pro', '/timer')
-  await page.locator('li').first().getByRole('button').filter({ hasText: /h|min/ }).first().click()
+  // The row's edit button shows "09:00 – 10:30 1 h 30". Matching on the time
+  // range, not on "h|min", keeps the project picker out ("Administratif").
+  await page.locator('li').first().getByRole('button', { name: /\d\d:\d\d – / }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   const box = (await dialog.boundingBox())!

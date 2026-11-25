@@ -32,8 +32,11 @@ test('sets, raises, lowers and clears a cell', async ({ page }) => {
 })
 
 test('keeps totals consistent and ignores invalid input', async ({ page }) => {
-  const before = await total(page).textContent()
   const r = row(page, 'Administratif')
+  // Rows and total come from the same query: wait for last week to load
+  // before reading the total, or it is still the empty "0 min".
+  await expect(r).toBeVisible()
+  const before = await total(page).textContent()
   const sunday = r.locator('input').nth(6)
   await sunday.fill('n’importe quoi')
   await sunday.press('Enter')

@@ -1,7 +1,20 @@
 import { expect, type Page } from '@playwright/test'
 
-/** Opens the app on fresh demo data and completes onboarding. */
+/**
+ * A fixed "now" for the demo: the sample data is generated relative to today,
+ * so without this the entries (and which project lands on which day) change
+ * from one day to the next. A Wednesday afternoon, outside any DST change:
+ * today already has entries and last week is complete. Time keeps flowing.
+ */
+export const DEMO_NOW = new Date('2026-10-07T15:00:00+02:00')
+
+export async function pinClock(page: Page, now = DEMO_NOW) {
+  await page.clock.setSystemTime(now)
+}
+
+/** Opens the app on fresh demo data (with a pinned date) and completes onboarding. */
 export async function openApp(page: Page, choice: 'Pro' | 'Étudiant' = 'Pro', path = '/') {
+  await pinClock(page)
   await page.goto('/')
   await page.getByRole('button', { name: choice, exact: false }).first().click()
   await page.getByRole('button', { name: 'C’est parti' }).click()
