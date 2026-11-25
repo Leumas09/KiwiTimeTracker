@@ -116,7 +116,7 @@ test.describe('preferences', () => {
     await page.getByLabel('Travail').press('Enter')
     await page.reload()
     await expect(page.getByLabel('Travail')).toHaveValue('50')
-    await page.goto('/')
+    await page.goto('/dashboard')
     await expect(page.getByRole('heading', { name: 'Bonjour Samuel' })).toBeVisible()
   })
 
@@ -138,8 +138,15 @@ test.describe('preferences', () => {
   })
 })
 
-test('dashboard shows today, week, month and budgets', async ({ page }) => {
+test('the app opens on the calendar', async ({ page }) => {
   await openApp(page)
+  await expect(page).toHaveURL(/\/calendar$/)
+  await page.getByRole('link', { name: 'Tableau de bord' }).click()
+  await expect(page).toHaveURL(/\/dashboard$/)
+})
+
+test('dashboard shows today, week, month and budgets', async ({ page }) => {
+  await openApp(page, 'Pro', '/dashboard')
   for (const label of ['Aujourd’hui', 'Cette semaine', 'Ce mois-ci']) {
     await expect(page.getByText(label, { exact: true }).first()).toBeVisible()
   }
